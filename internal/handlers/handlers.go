@@ -5,6 +5,7 @@ import (
 	"github.com/Ldepner/auth-project/internal/authenticator"
 	"github.com/Ldepner/auth-project/internal/config"
 	"github.com/Ldepner/auth-project/internal/drivers"
+	"github.com/Ldepner/auth-project/internal/helpers"
 	"github.com/Ldepner/auth-project/internal/models"
 	"github.com/Ldepner/auth-project/internal/render"
 	"github.com/Ldepner/auth-project/internal/repository"
@@ -35,7 +36,7 @@ func NewHandlers(r *Repository) {
 
 // Home renders the home page
 func (*Repository) Home(w http.ResponseWriter, r *http.Request) {
-	err := render.Template(w, "home.html")
+	err := render.Template(w, "home.html", &models.TemplateData{})
 	if err != nil {
 		log.Println("error rendering home page")
 		return
@@ -44,7 +45,7 @@ func (*Repository) Home(w http.ResponseWriter, r *http.Request) {
 
 // Login renders the login page
 func (*Repository) Login(w http.ResponseWriter, r *http.Request) {
-	err := render.Template(w, "login.html")
+	err := render.Template(w, "login.html", &models.TemplateData{})
 	if err != nil {
 		log.Println("error rendering login page")
 		return
@@ -64,13 +65,20 @@ func (*Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
 
 	success, err := authenticator.Authenticate(loginForm)
 	if err != nil {
-		log.Println("error with login form")
-		return
+		switch t := err.(type) {
+		default:
+			log.Println("error with login form", t)
+			return
+		case *helpers.ErrRecordNotFound:
+			render.Template(w, "register.html", &models.TemplateData{Error: "email not found, please register"})
+			return
+		}
 	}
 
 	if !success {
-		// TODO: Add flash for unsuccessful login
-		err := render.Template(w, "login.html")
+		stringMap := make(map[string]string)
+		stringMap["email"] = loginForm.Email
+		err := render.Template(w, "login.html", &models.TemplateData{Error: "password incorrect", StringMap: stringMap})
 		if err != nil {
 			log.Println("error rendering login page")
 			return
@@ -109,7 +117,7 @@ func (*Repository) PostLogout(w http.ResponseWriter, r *http.Request) {
 
 // Register renders the registration page
 func (*Repository) Register(w http.ResponseWriter, r *http.Request) {
-	err := render.Template(w, "register.html")
+	err := render.Template(w, "register.html", &models.TemplateData{})
 	if err != nil {
 		log.Println("error rendering registration page")
 		return
@@ -124,11 +132,10 @@ func (*Repository) PostRegister(w http.ResponseWriter, r *http.Request) {
 		log.Println("error with registration form")
 		return
 	}
-	// TODO: handle email already exists
+
 	regForm := authenticator.NewRegForm(r.PostForm)
-	log.Println(r.PostForm)
 	if regForm.Password != regForm.PasswordConfirmation {
-		render.Template(w, "register.html")
+		render.Template(w, "register.html", &models.TemplateData{})
 		return
 	}
 
@@ -139,9 +146,15 @@ func (*Repository) PostRegister(w http.ResponseWriter, r *http.Request) {
 
 	err = Repo.DB.CreateUserRecord(&newRecord)
 	if err != nil {
-		log.Println(err)
-		render.Template(w, "register.html")
-		return
+		switch t := err.(type) {
+		default:
+			log.Println(t)
+			render.Template(w, "register.html", &models.TemplateData{})
+			return
+		case *helpers.ErrDuplicateEmail:
+			render.Template(w, "login.html", &models.TemplateData{Error: "email already registered, please login"})
+			return
+		}
 	}
 
 	log.Println(fmt.Sprintf("user record creation successful: %s, %s", regForm.Email, regForm.Password))

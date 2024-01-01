@@ -1,9 +1,9 @@
 package auth_service
 
 import (
-	"errors"
 	"github.com/Ldepner/auth-project/internal/repository"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 )
 
 type PasswordAuthService struct {
@@ -13,12 +13,13 @@ type PasswordAuthService struct {
 func (p *PasswordAuthService) Authenticate(email, password string) (bool, error) {
 	user, err := p.DBRepo.GetUserRecordByEmail(email)
 	if err != nil {
+		log.Println(err)
 		return false, err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err == bcrypt.ErrMismatchedHashAndPassword {
-		return false, errors.New("incorrect password")
+		return false, nil
 	} else if err != nil {
 		return false, err
 	}
