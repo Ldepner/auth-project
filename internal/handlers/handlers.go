@@ -5,6 +5,7 @@ import (
 	"github.com/Ldepner/auth-project/internal/authenticator"
 	"github.com/Ldepner/auth-project/internal/config"
 	"github.com/Ldepner/auth-project/internal/drivers"
+	"github.com/Ldepner/auth-project/internal/models"
 	"github.com/Ldepner/auth-project/internal/render"
 	"github.com/Ldepner/auth-project/internal/repository"
 	"github.com/Ldepner/auth-project/internal/repository/dbrepo"
@@ -59,7 +60,6 @@ func (*Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(r.PostForm)
 	loginForm := authenticator.NewLoginForm(r.Form)
 
 	success, err := authenticator.Authenticate(loginForm)
@@ -67,7 +67,6 @@ func (*Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
 		log.Println("error with login form")
 		return
 	}
-	log.Println(success == false)
 
 	if !success {
 		// TODO: Add flash for unsuccessful login
@@ -119,5 +118,41 @@ func (*Repository) Register(w http.ResponseWriter, r *http.Request) {
 
 // PostRegister registers a new user
 func (*Repository) PostRegister(w http.ResponseWriter, r *http.Request) {
+	log.Println("attempting to register...")
+	err := r.ParseForm()
+	if err != nil {
+		log.Println("error with registration form")
+		return
+	}
+	// TODO: handle email already exists
+	regForm := authenticator.NewRegForm(r.PostForm)
+	log.Println(r.PostForm)
+	if regForm.Password != regForm.PasswordConfirmation {
+		render.Template(w, "register.html")
+		return
+	}
+
+	newRecord := models.UserRecord{
+		Email:    regForm.Email,
+		Password: regForm.Password,
+	}
+
+	err = Repo.DB.CreateUserRecord(&newRecord)
+	if err != nil {
+		log.Println(err)
+		render.Template(w, "register.html")
+		return
+	}
+
+	log.Println(fmt.Sprintf("user record creation successful: %s, %s", regForm.Email, regForm.Password))
+	cookie := &http.Cookie{
+		Name:     "id",
+		Value:    "1",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, cookie)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

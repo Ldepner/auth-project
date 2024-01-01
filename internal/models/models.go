@@ -1,7 +1,6 @@
 package models
 
 type UserRecord struct {
-	ID       string
-	Email    string
-	Password string
+	Email    string `bson:"email,omitempty"`
+	Password string `bson:"password,omitempty"`
 }

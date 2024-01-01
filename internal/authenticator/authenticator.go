@@ -3,7 +3,6 @@ package authenticator
 import (
 	"github.com/Ldepner/auth-project/internal/authenticator/auth_service"
 	"github.com/Ldepner/auth-project/internal/repository"
-	"log"
 	"net/url"
 )
 
@@ -23,6 +22,12 @@ type LoginForm struct {
 	Password string
 }
 
+type RegForm struct {
+	Email                string
+	Password             string
+	PasswordConfirmation string
+}
+
 func NewLoginForm(data url.Values) *LoginForm {
 	return &LoginForm{
 		Email:    data.Get("email"),
@@ -30,12 +35,18 @@ func NewLoginForm(data url.Values) *LoginForm {
 	}
 }
 
+func NewRegForm(data url.Values) *RegForm {
+	return &RegForm{
+		Email:                data.Get("email"),
+		Password:             data.Get("password"),
+		PasswordConfirmation: data.Get("confirmPassword"),
+	}
+}
+
 func Authenticate(data *LoginForm) (bool, error) {
 	// password strategy
-	log.Println(data.Email)
 	if len(data.Email) > 0 {
-		log.Println("test")
-		authService := auth_service.PasswordAuthService{}
+		authService := auth_service.PasswordAuthService{DBRepo: *DBRepo}
 		success, err := authService.Authenticate(data.Email, data.Password)
 
 		return success, err

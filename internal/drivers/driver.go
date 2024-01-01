@@ -11,7 +11,8 @@ import (
 const MongoDBURI = "mongodb+srv://test:F9r8Gifh3Gy7uCJn@cluster0.gqvcv5g.mongodb.net/?retryWrites=true&w=majority"
 
 type DB struct {
-	NoSQL *mongo.Database
+	Client *mongo.Client
+	NoSQL  *mongo.Database
 }
 
 func DBConnect() *DB {
@@ -23,16 +24,12 @@ func DBConnect() *DB {
 	if err != nil {
 		panic(err)
 	}
-	defer func() {
-		if err = client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
+
 	// Send a ping to confirm a successful connection
-	db := client.Database("admin")
+	db := client.Database("auth_service")
 	if err := db.RunCommand(context.TODO(), bson.D{{"ping", 1}}).Err(); err != nil {
 		panic(err)
 	}
 	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
-	return &DB{NoSQL: db}
+	return &DB{Client: client, NoSQL: db}
 }
