@@ -42,17 +42,17 @@
 
     <main class="px-3">
         <h1>Register</h1>
-        <form class="form-signin" action="/register" method="POST">
+        <form class="form-signin" action="/register" method="POST" autocomplete="off">
             <div class="form-floating">
-                <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com">
+                <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" data-lpignore="true">
                 <label for="email">Email address</label>
             </div>
             <div class="form-floating">
-                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password" data-lpignore="true">
                 <label for="password">Password</label>
             </div>
             <div class="form-floating">
-                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password">
+                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" data-lpignore="true">
                 <label for="confirmPassword">Confirm Password</label>
             </div>
 
@@ -61,7 +61,7 @@
                     <input type="checkbox" value="remember-me"> Remember me
                 </label>
             </div>
-            <button class="btn btn-lg btn-secondary fw-bold border-white bg-white w-100" type="submit">Sign in</button>
+            <button class="btn btn-lg btn-secondary fw-bold border-white bg-white w-100" type="submit">Sign up</button>
         </form>
     </main>
 

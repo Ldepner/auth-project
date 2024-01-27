@@ -43,14 +43,14 @@ func NewRegForm(data url.Values) *RegForm {
 	}
 }
 
-func Authenticate(data *LoginForm) (bool, error) {
+func Authenticate(data *LoginForm) (string, bool, error) {
 	// password strategy
 	if len(data.Email) > 0 {
 		authService := auth_service.PasswordAuthService{DBRepo: *DBRepo}
-		success, err := authService.Authenticate(data.Email, data.Password)
+		userID, success, err := authService.Authenticate(data.Email, data.Password)
 
-		return success, err
+		return userID, success, err
 	}
 
-	return false, nil
+	return "", false, nil
 }

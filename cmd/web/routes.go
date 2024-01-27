@@ -15,6 +15,10 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Post("/logout", handlers.Repo.PostLogout)
 	mux.Get("/register", handlers.Repo.Register)
 	mux.Post("/register", handlers.Repo.PostRegister)
+	mux.Get("/registration/begin", handlers.Repo.BeginRegistration)
+	mux.Post("/registration/finish", handlers.Repo.FinishRegistration)
+	mux.Get("/login/begin", handlers.Repo.BeginLogin)
+	mux.Post("/login/finish", handlers.Repo.FinishLogin)
 
 	mux.Route("/", func(mux chi.Router) {
 		mux.Use(Auth)

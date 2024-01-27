@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"github.com/Ldepner/auth-project/internal/config"
+	"github.com/Ldepner/auth-project/internal/session_manager"
 	"net/http"
 )
 
@@ -13,15 +14,16 @@ func NewHelpers(a *config.AppConfig) {
 }
 
 func IsAuthenticated(r *http.Request) bool {
-	//exists := app.Session.Exists(r.Context(), "user_id")
 	exists, err := r.Cookie("id")
 	if err != nil {
 		return false
 	}
 
-	if len(exists.Value) > 0 {
-		return true
+	// Check if session is valid
+	isValid, err := session_manager.IsSessionTokenValid(exists.Value)
+	if err != nil {
+		return false
 	}
 
-	return false
+	return isValid
 }
